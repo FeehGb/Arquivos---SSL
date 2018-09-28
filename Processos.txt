@@ -1,5 +1,6 @@
-1 -- Instalar OpenSSL
+1 -- Instalar OpenSSL - UBUNTO PULAR ESTA PARTE
 Abri console na pasta OpenSSL-Win64\bin>
+
 
 2 -- Criar arquivo com nome => v3.ext e adicionar essas linhas
 
@@ -11,41 +12,33 @@ subjectAltName = @alt_names
 [alt_names]
 DNS.1 = localhost
 
-3 -- CRIAR CA cert
+abrir => /etc/ssl/openssl.cnf
+[v3_req]
+...
+x509_extensions = v3_ca
 
-#openssl genrsa -des3 -out rootCA.key 2048
-#openssl req -x509 -new -nodes -key rootCA.key -sha256 -days 1024 -out rootCA.pem
-#openssl req -new -sha256 -nodes -out server.csr -newkey rsa:2048 -keyout server.key -config C:\OpenSSL-Win64\bin\openssl.cfg 
-#openssl x509 -req -in server.csr -CA rootCA.pem -CAkey rootCA.key -CAcreateserial -out server.crt -days 500 -sha256 -extfile v3.ext
+[v3_ca]
+...
+subjectAltName = @alt_names
+[alt_names]
+DNS.1 = localhost
 
 
-#MESMO PROCESSO MAIS RAPIDO
+3 -- CRIAR CA 
+
 openssl req -x509 -nodes -new -sha256 -days 1024 -newkey rsa:2048 -keyout RootCA.key -out RootCA.pem -subj "/C=US/CN=rootCA"
 openssl x509 -outform pem -in RootCA.pem -out RootCA.crt
-openssl req -new -nodes -newkey rsa:2048 -keyout server.key -out server.csr -subj "/C=BR/ST=Parana/L=Curitiba/O=Example-Certificates/CN=observatoriodotabaco"
+openssl req -new -nodes -newkey rsa:2048 -keyout server.key -out server.csr -subj "/C=BR/ST=Parana/L=Curitiba/O=Example-Certificates/CN=localhost"
 openssl x509 -req -sha256 -days 1024 -in server.csr -CA RootCA.pem -CAkey RootCA.key -CAcreateserial -extfile v3.ext -out server.crt
 
 
-4 -- EDITAR O ARQUIVO HTTPD-SSL.CONF
-
-
-Listen 443
-SSLCipherSuite HIGH:MEDIUM:!MD5:!RC4
-SSLProxyCipherSuite HIGH:MEDIUM:!MD5:!RC4
-SSLHonorCipherOrder on 
-SSLProtocol all -SSLv3
-SSLProxyProtocol all -SSLv3
-SSLPassPhraseDialog  builtin
-SSLSessionCache        "shmcb:c:/Apache24/logs/ssl_scache(512000)"
-SSLSessionCacheTimeout  300
-
-
+4 - EDITAR O default-ssl.conf
 <VirtualHost _default_:443>
 
-DocumentRoot "C:/wamp64/www/observ"
-ServerName observatoriodotabaco:443
+DocumentRoot "/var/www/"
+ServerName localhost:443
 ServerAdmin admin@example.com
-ErrorLog "C:/wamp64/bin/apache/apache2.4.23/logs/error.log"
+ErrorLog "/etc/ssl/apache2/logs/error.log"
 TransferLog "C:/wamp64/bin/apache/apache2.4.23/logs/access.log"
 
 #   SSL Engine Switch:
